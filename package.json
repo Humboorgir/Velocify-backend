@@ -1,0 +1,19 @@
+{
+  "name": "velocify-backend",
+  "version": "1.0.0",
+  "description": "velocify's backend",
+  "main": "app.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Humboorgir/Velocify-backend.git"
+  },
+  "author": "Humboorgir",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/Humboorgir/Velocify-backend/issues"
+  },
+  "homepage": "https://github.com/Humboorgir/Velocify-backend#readme"
+}
