@@ -1,7 +1,8 @@
 import express, { Request, Response } from "express";
 import userModel from "../models/user";
 import mongoConnect from "../utils/mongoconnect";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const router = express.Router();
 // handling post requests sent to /auth/register
 router.post("/register", (req: Request, res: Response) => {
@@ -22,6 +23,8 @@ router.post("/register", (req: Request, res: Response) => {
 });
 router.post("/login", (req: Request, res: Response) => {
   const { email, password } = req.body;
+  const user = { email, password };
+  jwt.sign(user, ACCESS_TOKEN_SECRET);
 });
 
 export default router;
