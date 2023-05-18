@@ -24,7 +24,8 @@ router.post("/register", (req: Request, res: Response) => {
 router.post("/login", (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = { email, password };
-  jwt.sign(user, ACCESS_TOKEN_SECRET);
+  const accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET);
+  res.json({ accessToken });
 });
 
 export default router;
