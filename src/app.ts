@@ -1,3 +1,7 @@
+// loading environment variables
+import { config } from "dotenv";
+config();
+
 import express, { Request, Response, Express } from "express";
 import * as path from "path";
 import * as fs from "fs";
