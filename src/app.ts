@@ -4,7 +4,9 @@ import * as fs from "fs";
 
 const port = process.env.PORT || 2000;
 const app: Express = express();
-
+// use body parser middleware to parse json data
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 // loading routes
 const routes: string[] = [];
 const routesPath = path.join(__dirname, "routes");

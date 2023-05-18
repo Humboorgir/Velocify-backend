@@ -6,7 +6,7 @@ router.all("/register", (req: Request, res: Response) => {
   // for testing purposes:
   console.log("received a request!");
   console.table(req.body);
-  const { username, email, password } = req.body();
+  const { username, email, password } = req.body;
   let data = new userModel({
     username,
     email,
