@@ -18,11 +18,9 @@ for (const route of routeFiles) {
   app.use(Route, require(`./routes/${Route}`).default);
   console.log(routes);
 }
+// return 404 if none of the defined routes match the url
 app.use((req: Request, res: Response) => {
   return res.status(404).send("Not found");
-});
-app.get("/", (req: Request, res: Response) => {
-  res.send("test");
 });
 
 app.listen(port, () => {
