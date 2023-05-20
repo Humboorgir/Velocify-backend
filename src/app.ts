@@ -3,11 +3,33 @@ import { config } from "dotenv";
 config();
 
 import express, { Request, Response, Express } from "express";
+import mongoConnect from "./utils/mongoconnect";
+import mongoose from "mongoose";
 import * as path from "path";
 import * as fs from "fs";
 
 const port = process.env.PORT || 2000;
 const app: Express = express();
+// establish connection with mongodb database
+mongoConnect();
+const database = mongoose.connection;
+// handling database errors
+database.on("connecting", () => {
+  console.log("[MongoDB Connection]: Connecting...");
+});
+database.on("connected", () => {
+  console.log("[MongoDB Connection]: Connected");
+});
+database.on("error", (err) => {
+  console.log("[MongoDB Connection]: Error \n" + err);
+  return mongoose.disconnect();
+});
+database.on("disconnected", () => {
+  console.log(
+    "[MongoDB Connection]: Disconnected\n" + "Attempting to reconnect"
+  );
+  mongoConnect();
+});
 // use body parser middleware to parse json data
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
