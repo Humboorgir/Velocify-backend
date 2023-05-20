@@ -1,0 +1,17 @@
+GET http://localhost:2000/posts
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Ikh1bWJvb3JnaXIiLCJwYXNzd29yZCI6ImJhbGxzIiwiaWF0IjoxNjg0NTc1OTk0fQ.km8fK1IVWCzgvislnexg2F6ah1PG-s3SMU7xdoy6_HA
+###
+POST http://localhost:2000/auth/login
+Content-Type: application/json
+
+{
+    "email": "Humboorgir",
+    "password": "balls"
+}
+###
+POST http://localhost:2000/auth/token 
+Content-Type: application/json 
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Ikh1bWJvb3JnaXIiLCJwYXNzd29yZCI6ImJhbGxzIiwiaWF0IjoxNjg0NTc1OTM2fQ.SKZ7uc-zYsfklYKPLomvOl-EV7zCCsYIxtwvoWzNxQw"
+}
