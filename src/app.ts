@@ -3,33 +3,44 @@ import { config } from "dotenv";
 config();
 
 import express, { Request, Response, Express } from "express";
-import mongoConnect from "./utils/mongoconnect";
 import mongoose from "mongoose";
+import chalk from "chalk";
+import mongoConnect from "./utils/mongoconnect";
 import * as path from "path";
 import * as fs from "fs";
 
 const port = process.env.PORT || 2000;
 const app: Express = express();
-// establish connection with mongodb database
-mongoConnect();
 const database = mongoose.connection;
 // handling database errors
-database.on("connecting", () => {
-  console.log("[MongoDB Connection]: Connecting...");
-});
-database.on("connected", () => {
-  console.log("[MongoDB Connection]: Connected");
-});
-database.on("error", (err) => {
-  console.log("[MongoDB Connection]: Error \n" + err);
-  return mongoose.disconnect();
-});
-database.on("disconnected", () => {
-  console.log(
-    "[MongoDB Connection]: Disconnected\n" + "Attempting to reconnect"
-  );
-  mongoConnect();
-});
+const Events = {
+  connecting: () => {
+    return "connecting...";
+  },
+  connected: () => {
+    return "connected";
+  },
+  error: () => {
+    mongoose.disconnect();
+    return "error\n";
+  },
+  disconnected: () => {
+    mongoConnect();
+    return "disconnected\n" + "attempting to reconnect";
+  },
+};
+for (const event in Events) {
+  database.on(event, () => {
+    console.log(
+      `${chalk.green("[MongoDB Connection]:")} ${Events[
+        event as keyof typeof Events
+      ]()}`
+    );
+  });
+}
+
+// establish connection with mongodb database
+mongoConnect();
 // use body parser middleware to parse json data
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,14 +48,12 @@ app.use(express.urlencoded({ extended: false }));
 const routes: string[] = [];
 const routesPath = path.join(__dirname, "routes");
 const routeFiles = fs.readdirSync(routesPath);
-console.log(routeFiles);
 for (const route of routeFiles) {
   // Removes the ".ts" at the end of the filenames.
   const Route: string = `/${String(route).slice(0, -3)}`;
   routes.push(Route);
   // .default is neccessary here when using esm modules.
   app.use(Route, require(`./routes/${Route}`).default);
-  console.log(routes);
 }
 // return 404 if none of the defined routes match the url
 app.use((req: Request, res: Response) => {
@@ -52,5 +61,5 @@ app.use((req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log("server running");
+  console.log(`${chalk.cyan("[Server]:")} server running`);
 });
