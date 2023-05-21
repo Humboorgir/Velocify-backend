@@ -5,7 +5,7 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "rsecret";
 const router = express.Router();
 // TODO: implment this using a database
-const refreshTokens: string[] = [];
+let refreshTokens: string[] = [];
 // handling post requests sent to /auth/register
 router.post("/register", (req: Request, res: Response) => {
   // for testing purposes:
@@ -40,6 +40,11 @@ router.post("/token", (req: Request, res: Response) => {
     }
   );
 });
+router.delete('/logout', (req:Request, res:Response) => {
+  let { token } = req.body;
+  refreshTokens = refreshTokens.filter(rtoken => rtoken !== token);
+  res.sendStatus(204);
+})
 router.post("/login", (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = { email, password };
