@@ -3,15 +3,17 @@ import { config } from "dotenv";
 config();
 
 import express, { Request, Response, Express } from "express";
+import cors, { CorsOptions } from "cors";
 import mongoose from "mongoose";
 import chalk from "chalk";
 import mongoConnect from "./utils/mongoconnect";
 import * as path from "path";
 import * as fs from "fs";
-
+const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "http://localhost:3000";
 const port = process.env.PORT || 2000;
 const app: Express = express();
 const database = mongoose.connection;
+
 // handling database errors
 const Events = {
   connecting: () => {
@@ -41,6 +43,12 @@ for (const event in Events) {
 
 // establish connection with mongodb database
 mongoConnect();
+
+// cors
+const corsOptions: CorsOptions = {
+  origin: FRONTEND_SERVER,
+};
+app.use(cors(corsOptions));
 // use body parser middleware to parse json data
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
