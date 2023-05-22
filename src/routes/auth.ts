@@ -8,8 +8,7 @@ const router = express.Router();
 let refreshTokens: string[] = [];
 // handling post requests sent to /auth/register
 router.post("/register", (req: Request, res: Response) => {
-  // for testing purposes:
-  console.log("received a request!");
+  // for testing purposes
   console.table(req.body);
   const { username, email, password } = req.body;
   let data = new userModel({
@@ -17,9 +16,12 @@ router.post("/register", (req: Request, res: Response) => {
     email,
     password,
   });
-  data.save();
-  return res.status(200).json({
-    ok: true,
+  data.save().then((err) => {
+    // the error will be emitted to the 'error' event in mongoose.connection;
+    if (err) return res.sendStatus(500);
+    return res.status(200).json({
+      ok: true,
+    });
   });
 });
 
@@ -40,11 +42,11 @@ router.post("/token", (req: Request, res: Response) => {
     }
   );
 });
-router.delete('/logout', (req:Request, res:Response) => {
+router.delete("/logout", (req: Request, res: Response) => {
   let { token } = req.body;
-  refreshTokens = refreshTokens.filter(rtoken => rtoken !== token);
+  refreshTokens = refreshTokens.filter((rtoken) => rtoken !== token);
   res.sendStatus(204);
-})
+});
 router.post("/login", (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = { email, password };
