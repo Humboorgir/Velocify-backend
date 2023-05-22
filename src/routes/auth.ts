@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import bcrypt from "bcrypt";
 import userModel from "../models/user";
 import jwt, { Secret } from "jsonwebtoken";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
@@ -7,22 +8,22 @@ const router = express.Router();
 // TODO: implment this using a database
 let refreshTokens: string[] = [];
 // handling post requests sent to /auth/register
-router.post("/register", (req: Request, res: Response) => {
+router.post("/register", async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
   let data = new userModel({
     username,
     email,
-    password,
+    password: hashedPassword,
   });
-
   // saving the requested data into the databse
   data
     .save()
     .then(() => {
       return res.sendStatus(200);
     })
-    .catch(() => {
-      // the error will be emitted to mongoose.connection's "error" event
+    .catch((err) => {
+      console.log(err);
       return res.sendStatus(500);
     });
 });
