@@ -8,21 +8,23 @@ const router = express.Router();
 let refreshTokens: string[] = [];
 // handling post requests sent to /auth/register
 router.post("/register", (req: Request, res: Response) => {
-  // for testing purposes
-  console.table(req.body);
   const { username, email, password } = req.body;
   let data = new userModel({
     username,
     email,
     password,
   });
-  data.save().then((err) => {
-    // the error will be emitted to the 'error' event in mongoose.connection;
-    if (err) return res.sendStatus(500);
-    return res.status(200).json({
-      ok: true,
+
+  // saving the requested data into the databse
+  data
+    .save()
+    .then(() => {
+      return res.sendStatus(200);
+    })
+    .catch(() => {
+      // the error will be emitted to mongoose.connection's "error" event
+      return res.sendStatus(500);
     });
-  });
 });
 
 // used for generating a new access token
