@@ -50,13 +50,20 @@ router.delete("/logout", (req: Request, res: Response) => {
   refreshTokens = refreshTokens.filter((rtoken) => rtoken !== token);
   res.sendStatus(204);
 });
-router.post("/login", (req: Request, res: Response) => {
+
+router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = { email, password };
-  let accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "15s" });
+  // check if user exists
+  let foundUser = await userModel.findOne({ email });
+  if (!foundUser) return res.sendStatus(404);
+  // check if the password is valid
+  const isValid = bcrypt.compare(password, foundUser.password);
+  if (!isValid) return res.sendStatus(401);
+  let accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "10m" });
   let refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET);
   refreshTokens.push(refreshToken);
-  res.json({ accessToken, refreshToken });
+  return res.json({ accessToken, refreshToken });
 });
 
 export default router;
