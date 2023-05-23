@@ -58,7 +58,7 @@ router.post("/login", async (req: Request, res: Response) => {
   let foundUser = await userModel.findOne({ email });
   if (!foundUser) return res.sendStatus(404);
   // check if the password is valid
-  const isValid = bcrypt.compare(password, foundUser.password);
+  const isValid = await bcrypt.compare(password, foundUser.password);
   if (!isValid) return res.sendStatus(401);
   let accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "10m" });
   let refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET);
