@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import userModel from "../models/user";
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "rsecret";
 const router = express.Router();
@@ -34,16 +34,15 @@ router.post("/token", (req: Request, res: Response) => {
   if (!token) return res.sendStatus(401);
   if (!refreshTokens.includes(token)) return res.sendStatus(403);
 
-  return jwt.verify(
-    token,
-    REFRESH_TOKEN_SECRET as Secret,
-    (err: any, user: any) => {
-      if (err) return res.sendStatus(403);
-      const { email, password } = user;
-      let accessToken = jwt.sign({ email, password }, ACCESS_TOKEN_SECRET);
-      return res.json({ accessToken });
-    }
-  );
+  try {
+    // prettier-ignore
+    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET as Secret) as JwtPayload;
+    const { email, password } = decoded;
+    let accessToken = jwt.sign({ email, password }, ACCESS_TOKEN_SECRET);
+    return res.status(200).json({ accessToken });
+  } catch (err) {
+    return res.sendStatus(403);
+  }
 });
 router.delete("/logout", (req: Request, res: Response) => {
   let { token } = req.body;
@@ -63,7 +62,9 @@ router.post("/login", async (req: Request, res: Response) => {
   let accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET, {
     expiresIn: "1h",
   });
-  let refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET);
+  let refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET, {
+    expiresIn: "90d",
+  });
   refreshTokens.push(refreshToken);
   return res.status(200).json({ accessToken, refreshToken });
 });
