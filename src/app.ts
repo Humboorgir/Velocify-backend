@@ -55,6 +55,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use(cookieParser());
+
 // loading routes
 const routes: string[] = [];
 const routesPath = path.join(__dirname, "routes");
@@ -72,5 +73,5 @@ app.use((req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`${chalk.cyan("[Server]:")} server running`);
+  console.log(`${chalk.cyan("[Server]:")} server running on port ${port}`);
 });
