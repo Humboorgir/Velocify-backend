@@ -52,21 +52,23 @@ router.delete("/logout", (req: Request, res: Response) => {
 
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  const user = { email, password };
   // check if user exists
   let foundUser = await userModel.findOne({ email });
   if (!foundUser) return res.sendStatus(404);
   // check if the password is valid
   const isValid = await bcrypt.compare(password, foundUser.password);
   if (!isValid) return res.sendStatus(401);
-  let accessToken = jwt.sign(user, ACCESS_TOKEN_SECRET, {
+  const User = { email, password, username: foundUser.username };
+  let accessToken = jwt.sign(User, ACCESS_TOKEN_SECRET, {
     expiresIn: "1h",
   });
-  let refreshToken = jwt.sign(user, REFRESH_TOKEN_SECRET, {
+  let refreshToken = jwt.sign(User, REFRESH_TOKEN_SECRET, {
     expiresIn: "90d",
   });
   refreshTokens.push(refreshToken);
-  return res.status(200).json({ accessToken, refreshToken });
+  return res
+    .status(200)
+    .json({ accessToken, refreshToken, username: foundUser.username });
 });
 
 export default router;
