@@ -42,7 +42,6 @@ const messages = [
 
 const router = express.Router();
 router.get("/", authenticate, (req: Request, res: Response) => {
-  console.log("message haro miferestam");
   return res.status(200).json(messages);
 });
 export default router;

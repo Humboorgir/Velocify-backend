@@ -2,45 +2,25 @@
 import { config } from "dotenv";
 config();
 
+import * as path from "path";
+import * as fs from "fs";
+import chalk from "chalk";
+
 import express, { Request, Response, Express } from "express";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 import mongoose from "mongoose";
-import chalk from "chalk";
+
 import mongoConnect from "./utils/mongoconnect";
-import * as path from "path";
-import * as fs from "fs";
+import loadMongoEvents from "./utils/mongoEvents";
+
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "http://localhost:3000";
 const port = process.env.PORT || 2000;
 const app: Express = express();
 const database = mongoose.connection;
 
 // handling database errors
-const Events = {
-  connecting: () => {
-    return "connecting...";
-  },
-  connected: () => {
-    return "connected";
-  },
-  error: () => {
-    mongoose.disconnect();
-    return "error\n";
-  },
-  disconnected: () => {
-    mongoConnect();
-    return "disconnected\n" + "attempting to reconnect";
-  },
-};
-for (const event in Events) {
-  database.on(event, () => {
-    console.log(
-      `${chalk.green("[MongoDB Connection]:")} ${Events[
-        event as keyof typeof Events
-      ]()}`
-    );
-  });
-}
+loadMongoEvents(database);
 
 // establish connection with mongodb database
 mongoConnect();
