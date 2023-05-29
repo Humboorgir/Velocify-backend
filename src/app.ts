@@ -19,7 +19,8 @@ import loadMongoEvents from "./utils/mongoEvents";
 import loadRouteFiles from "./utils/loadRouteFiles";
 
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "http://localhost:3000";
-const port = process.env.PORT || 2000;
+const PORT = Number(process.env.PORT) || 2000;
+const IP_ADDRESS = process.env.IP_ADDRESS;
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const app: Express = express();
 const server = createServer(app);
@@ -82,6 +83,8 @@ app.use((req: Request, res: Response) => {
   return res.status(404).send("Not found");
 });
 
-server.listen(port, () => {
-  console.log(`${chalk.cyan("[Server]:")} server running on port ${port}`);
+server.listen(PORT, IP_ADDRESS, () => {
+  console.log(
+    `${chalk.cyan("[Server]:")} server running on ${IP_ADDRESS}:${PORT}`
+  );
 });

@@ -3,12 +3,15 @@ interface IMessage {
   author: mongoose.Schema.Types.ObjectId;
   content: string;
 }
-const messageSchema = new mongoose.Schema({
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+const messageSchema = new mongoose.Schema(
+  {
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+    content: String,
   },
-  content: String,
-});
+  { timestamps: true }
+);
 const messageModel = mongoose.model<IMessage>("message", messageSchema);
 export default messageModel;
