@@ -10,7 +10,6 @@ let refreshTokens: string[] = [];
 // handling post requests sent to /auth/register
 router.post("/register", async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
-  console.table({ username, email, password });
   if (!username || !email || !password) return;
   const hashedPassword = await bcrypt.hash(password, 10);
   let data = new userModel({
