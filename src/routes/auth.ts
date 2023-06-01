@@ -59,13 +59,17 @@ router.post("/login", async (req: Request, res: Response) => {
   // check if the password is valid
   const isValid = await bcrypt.compare(password, foundUser.password);
   if (!isValid) return res.sendStatus(401);
-  const User = { email, password, username: foundUser.username };
+
+  const User = { _id: foundUser._id };
+  // generating the access token
   let accessToken = jwt.sign(User, ACCESS_TOKEN_SECRET, {
     expiresIn: "1h",
   });
+  // generating the refresh token
   let refreshToken = jwt.sign(User, REFRESH_TOKEN_SECRET, {
     expiresIn: "90d",
   });
+  // storing the refresh token
   refreshTokens.push(refreshToken);
   return res
     .status(200)
