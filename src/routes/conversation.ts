@@ -11,12 +11,19 @@ router.get("/:userId", authenticate, async (req: Request, res: Response) => {
   const { userId } = req.params;
   const authenticatedRequest = req as authenticatedRequest;
   const myId = authenticatedRequest.user._id;
-  let conversation = await conversationModel.findOne({
-    users: { $all: [userId, myId] },
-  });
-  //   .populate("users", "username")
-  //   .populate("messages")
-  //   .populate({ path: "messages/authors", select: "username" });
+  let conversation = await conversationModel
+    .findOne({
+      users: { $all: [userId, myId] },
+    })
+    .populate("users", "username")
+    .populate({
+      path: "messages",
+      populate: {
+        path: "author",
+        select: "-email -password",
+      },
+    });
+
   if (!conversation) conversation = null;
   return res.status(200).json(conversation);
 });
