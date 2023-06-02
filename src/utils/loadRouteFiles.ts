@@ -7,7 +7,7 @@ export default function loadRouteFiles(app: Express) {
   const routeFiles = fs.readdirSync(routesPath);
   for (const route of routeFiles) {
     // Removes the ".ts" at the end of the filenames.
-    const Route: string = `/${String(route).slice(0, -3)}`;
+    const Route: string = route.split(".")[0];
     // .default is neccessary here when using esm modules.
     app.use(Route, require(`../routes/${Route}`).default);
   }
