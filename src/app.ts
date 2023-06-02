@@ -69,7 +69,7 @@ io.on("connection", async (socket) => {
 
 // return 404 if none of the defined routes match the url
 app.use((req: Request, res: Response) => {
-  return res.status(404).send("Not found");
+  return res.sendStatus(404);
 });
 
 server.listen(PORT, IP_ADDRESS, () => {
