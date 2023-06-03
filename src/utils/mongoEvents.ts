@@ -4,24 +4,24 @@ import mongoConnect from "./mongoconnect";
 export default function loadMongoEvents(database: mongoose.Connection) {
   const mongoEvents = {
     connecting: () => {
-      return "connecting...";
+      return "Connecting...";
     },
     connected: () => {
-      return "connected";
+      return "Connected";
     },
     error: () => {
       mongoose.disconnect();
-      return "error\n";
+      return "Error\n";
     },
     disconnected: () => {
       mongoConnect();
-      return "disconnected\n" + "attempting to reconnect";
+      return "Disconnected\n" + "attempting to reconnect";
     },
   };
   for (const event in mongoEvents) {
     database.on(event, () => {
       console.log(
-        `${chalk.green("[MongoDB Connection]:")} ${mongoEvents[
+        `${chalk.green("[MongoDB Connection]")} ${mongoEvents[
           event as keyof typeof mongoEvents
         ]()}`
       );

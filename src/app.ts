@@ -74,6 +74,6 @@ app.use((req: Request, res: Response) => {
 
 server.listen(PORT, IP_ADDRESS, () => {
   console.log(
-    `${chalk.cyan("[Server]:")} server running on ${IP_ADDRESS}:${PORT}`
+    `${chalk.cyan("[Server]")} Server running on ${IP_ADDRESS}:${PORT}`
   );
 });

@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import chalk from "chalk";
 import { Express } from "express";
 
 export default function loadRouteFiles(app: Express) {
@@ -8,7 +9,7 @@ export default function loadRouteFiles(app: Express) {
   for (const route of routeFiles) {
     // Removes the ".ts" at the end of the filenames.
     const Route: string = route.split(".")[0];
-    console.log(Route);
+    console.log(`${chalk.cyan("[Server]")} Loaded route /${Route}`);
     // .default is neccessary here when using esm modules.
     app.use(`/${Route}`, require(`../routes/${Route}`).default);
   }
