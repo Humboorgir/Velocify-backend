@@ -8,9 +8,13 @@ interface IData {
   message: string;
   userId: string;
 }
+interface IO extends Server {
+  IDs: Map<string, string>;
+}
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
-export default async function handler(io: Server, socket: Socket, data: IData) {
+export default async function handler(io: IO, socket: Socket, data: IData) {
+  console.log(io.IDs);
   // note: userId contains the ID of the user we're sending a message to
   const { token, message, userId } = data;
   // authorize the user
@@ -46,8 +50,13 @@ export default async function handler(io: Server, socket: Socket, data: IData) {
       conversation.messages.push(savedMessage._id);
       conversation.save();
     }
-
-    io.emit("messageCreate", {
+    const socketId = io.IDs.get(userId);
+    if (!socketId) return console.log(`User is not online!\n ${userId}`);
+    socket.to(socketId).emit("messageCreate", {
+      author: author,
+      content: message,
+    });
+    socket.emit("messageCreate", {
       author: author,
       content: message,
     });

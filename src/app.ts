@@ -11,6 +11,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
+import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 import mongoConnect from "./utils/mongoconnect";
@@ -18,6 +19,7 @@ import loadMongoEvents from "./utils/mongoEvents";
 import loadRouteFiles from "./utils/loadRouteFiles";
 
 const FRONTEND_SERVER = process.env.FRONTEND_SERVER || "http://localhost:3000";
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const PORT = Number(process.env.PORT) || 2000;
 const IP_ADDRESS = process.env.IP_ADDRESS;
 const app: Express = express();
@@ -50,7 +52,23 @@ const io = new Server(server, {
   cors: corsOptions,
 });
 
+const IDs = new Map();
+interface IO extends Server {
+  IDs: Map<string, string>;
+}
+
+(io as IO).IDs = IDs;
 io.on("connection", async (socket) => {
+  const token = socket.handshake.query.token as string;
+  if (!token) return;
+  // decode the provided token to get the users id
+  try {
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    if (typeof decoded === "string") return;
+    IDs.set(decoded._id, socket.id);
+  } catch {
+    return;
+  }
   // get the path to ./events in my computer
   const eventsPath = path.join(__dirname, "events");
   // get the name of each file stored in ./events (along with their file extensions)
@@ -66,7 +84,6 @@ io.on("connection", async (socket) => {
     socket.on(Event, (data) => handler.default(io, socket, data));
   }
 });
-
 // return 404 if none of the defined routes match the url
 app.use((req: Request, res: Response) => {
   return res.sendStatus(404);
