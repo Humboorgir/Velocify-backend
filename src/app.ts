@@ -81,7 +81,9 @@ io.on("connection", async (socket) => {
     const Event: string = event.split(".")[0];
     // import handler
     const handler = require(`./events/${Event}`);
-    socket.on(Event, (data) => handler.default(io, socket, data));
+    socket.on(Event, (data, callback) =>
+      handler.default(io, socket, data, callback)
+    );
   }
 });
 // return 404 if none of the defined routes match the url

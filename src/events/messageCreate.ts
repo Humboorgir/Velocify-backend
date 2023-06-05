@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/user";
 import messageModel from "../models/message";
 import conversationModel from "../models/conversation";
+import { Document } from "mongoose";
 interface IData {
   token: string;
   message: string;
@@ -12,8 +13,18 @@ interface IO extends Server {
   IDs: Map<string, string>;
 }
 
+interface message {
+  author: Document;
+  content: string;
+}
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
-export default async function handler(io: IO, socket: Socket, data: IData) {
+
+export default async function handler(
+  io: IO,
+  socket: Socket,
+  data: IData,
+  callback: (message: message) => void
+) {
   console.log(io.IDs);
   // note: userId contains the ID of the user we're sending a message to
   const { token, message, userId } = data;
@@ -51,15 +62,21 @@ export default async function handler(io: IO, socket: Socket, data: IData) {
       conversation.save();
     }
     const socketId = io.IDs.get(userId);
-    if (!socketId) return console.log(`User is not online!\n ${userId}`);
+    if (!socketId)
+      return callback({
+        author: author,
+        content: message,
+      });
+
     socket.to(socketId).emit("messageCreate", {
       author: author,
       content: message,
     });
-    socket.emit("messageCreate", {
+    callback({
       author: author,
       content: message,
     });
+    console.log("emitting message");
   } catch {
     // if the token is invalid or expired
     return;
