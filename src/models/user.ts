@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 interface IUser {
   username: string;
   email: string;
   password: string;
+  chats: [ObjectId];
 }
 const userSchema = new mongoose.Schema(
   {
@@ -18,8 +19,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    chats: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Chat",
+      },
+    ],
   },
   { timestamps: true }
 );
-const userModel = mongoose.model<IUser>("user", userSchema);
+const userModel = mongoose.model<IUser>("User", userSchema);
 export default userModel;

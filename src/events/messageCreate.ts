@@ -62,11 +62,12 @@ export default async function handler(
       conversation.save();
     }
     const socketId = io.IDs.get(userId);
-    if (!socketId)
+    if (!socketId) {
       return callback({
         author: author,
         content: message,
       });
+    }
 
     socket.to(socketId).emit("messageCreate", {
       author: author,
@@ -76,7 +77,6 @@ export default async function handler(
       author: author,
       content: message,
     });
-    console.log("emitting message");
   } catch {
     // if the token is invalid or expired
     return;
