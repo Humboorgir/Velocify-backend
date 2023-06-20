@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import authenticate from "../utils/authenticateToken";
-import conversationModel from "../models/conversation";
+import chatModel from "../models/chat";
 import { JwtPayload } from "jsonwebtoken";
 const router = express.Router();
 
@@ -11,11 +11,11 @@ router.get("/:userId", authenticate, async (req: Request, res: Response) => {
   const { userId } = req.params;
   const authenticatedRequest = req as authenticatedRequest;
   const myId = authenticatedRequest.user._id;
-  let conversation = await conversationModel
+  let chat = await chatModel
     .findOne({
-      users: { $all: [userId, myId] },
+      participants: { $all: [userId, myId] },
     })
-    .populate("users", "username")
+    .populate("participants", "username")
     .populate({
       path: "messages",
       populate: {
@@ -24,7 +24,7 @@ router.get("/:userId", authenticate, async (req: Request, res: Response) => {
       },
     });
 
-  if (!conversation) conversation = null;
-  return res.status(200).json(conversation);
+  if (!chat) chat = null;
+  return res.status(200).json(chat);
 });
 export default router;

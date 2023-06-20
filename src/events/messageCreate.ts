@@ -1,9 +1,9 @@
 import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import userModel from "../models/user";
-import messageModel from "../models/message";
-import conversationModel from "../models/conversation";
-import { Document } from "mongoose";
+import chatModel from "../models/chat";
+import conversationModel from "../models/chat";
+import { Document, ObjectId } from "mongoose";
 interface IData {
   token: string;
   message: string;
@@ -25,7 +25,6 @@ export default async function handler(
   data: IData,
   callback: (message: message) => void
 ) {
-  console.log(io.IDs);
   // note: userId contains the ID of the user we're sending a message to
   const { token, message, userId } = data;
   // authorize the user
@@ -41,26 +40,46 @@ export default async function handler(
       .select("-email -password");
 
     if (!author) return console.log("no author? 🤔");
-    // save the message in its own collection
-    let messageData = new messageModel({
+
+    const recipient = await userModel
+      .findOne({ _id: userId })
+      .select("-email -password");
+    if (!recipient) return console.log("no recipient? 🤔");
+    // check if a chat document between the two users is already stored,
+    // if not, create one
+    let chat = await chatModel.findOne({
+      participants: { $all: [userId, author._id] },
+    });
+    if (!chat) {
+      chat = new chatModel({
+        participants: [userId, author._id],
+        messages: [],
+      });
+    }
+
+    // define the message object
+    interface IMessage {
+      author: any;
+      content: string;
+    }
+    const Message: IMessage = {
       author: author._id,
       content: message,
-    });
-    const savedMessage = await messageData.save();
-    // save a reference to the message in the conversation document
-    const conversation = await conversationModel.findOne({
-      users: { $all: [userId, decoded._id] },
-    });
-    if (!conversation) {
-      const conversationData = new conversationModel({
-        users: [userId, decoded._id],
-        messages: [savedMessage._id],
-      });
-      conversationData.save();
-    } else {
-      conversation.messages.push(savedMessage._id);
-      conversation.save();
+    };
+
+    chat.messages.push(Message);
+    await chat.save();
+
+    if (!author.chats.includes(chat._id as any)) {
+      author.chats.push(chat._id as any);
+      await author.save();
     }
+
+    if (!recipient.chats.includes(chat._id as any)) {
+      recipient.chats.push(chat._id as any);
+      await recipient.save();
+    }
+
     const socketId = io.IDs.get(userId);
     if (!socketId) {
       return callback({
