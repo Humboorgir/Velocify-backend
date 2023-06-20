@@ -17,11 +17,8 @@ router.get("/:userId", authenticate, async (req: Request, res: Response) => {
     })
     .populate("participants", "username")
     .populate({
-      path: "messages",
-      populate: {
-        path: "author",
-        select: "-email -password",
-      },
+      path: "messages.author",
+      select: "-email -password",
     });
 
   if (!chat) chat = null;
