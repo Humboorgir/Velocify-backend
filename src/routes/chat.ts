@@ -7,13 +7,13 @@ const router = express.Router();
 interface authenticatedRequest extends Request {
   user: JwtPayload;
 }
-router.get("/:userId", authenticate, async (req: Request, res: Response) => {
-  const { userId } = req.params;
+router.get("/:chatId", authenticate, async (req: Request, res: Response) => {
+  const { chatId } = req.params;
   const authenticatedRequest = req as authenticatedRequest;
   const myId = authenticatedRequest.user._id;
   let chat = await chatModel
     .findOne({
-      participants: { $all: [userId, myId] },
+      _id: chatId,
     })
     .populate("participants", "username")
     .populate({
