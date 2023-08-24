@@ -71,7 +71,7 @@ router.post("/login", async (req: Request, res: Response) => {
   });
   // storing the refresh token
   refreshTokens.push(refreshToken);
-
+  
   const user = { username: foundUser.username, _id: foundUser._id };
   return res.status(200).json({ accessToken, refreshToken, user });
 });
