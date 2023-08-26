@@ -2,12 +2,11 @@ import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import userModel from "../models/user";
 import chatModel from "../models/chat";
-import conversationModel from "../models/chat";
-import { Document, ObjectId } from "mongoose";
+import { Document } from "mongoose";
 interface IData {
   token: string;
   message: string;
-  userId: string;
+  chatId: string;
 }
 interface IO extends Server {
   IDs: Map<string, string>;
@@ -26,7 +25,7 @@ export default async function handler(
   callback: (message: message) => void
 ) {
   // note: userId contains the ID of the user we're sending a message to
-  const { token, message, userId } = data;
+  const { token, message, chatId } = data;
   // authorize the user
   if (!token) return;
   try {
@@ -34,27 +33,25 @@ export default async function handler(
     const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
     // if the token is expired or invalid:
     if (typeof decoded === "string") return;
-    // look for a user in the database whose id matches the sender's id
-    const author = await userModel
-      .findOne({ _id: decoded._id })
-      .select("-email -password");
-
-    if (!author) return console.log("no author? 🤔");
-
-    const recipient = await userModel
-      .findOne({ _id: userId })
-      .select("-email -password");
-    if (!recipient) return console.log("no recipient? 🤔");
     // check if a chat document between the two users is already stored,
     // if not, create one
-    let chat = await chatModel.findOne({
-      participants: { $all: [userId, author._id] },
-    });
-    if (!chat) {
-      chat = new chatModel({
-        participants: [userId, author._id],
-        messages: [],
+    const chat = await chatModel
+      .findOne({
+        _id: chatId,
+      })
+      .populate({
+        path: "participants",
+        select: "-email -password",
       });
+
+    if (!chat) return console.log("Chat doesn't exist");
+
+    const author = chat.participants.filter((p) => p._id == decoded._id)[0];
+    const recipient = chat.participants.filter((p) => p._id !== decoded._id)[0];
+
+    if (!recipient.chats.includes(chat._id as any)) {
+      recipient.chats.push(chat._id as any);
+      await recipient.save();
     }
 
     // define the message object
@@ -70,20 +67,11 @@ export default async function handler(
     chat.messages.push(Message);
     await chat.save();
 
-    if (!author.chats.includes(chat._id as any)) {
-      author.chats.push(chat._id as any);
-      await author.save();
-    }
+    const socketId = io.IDs.get(String(recipient._id));
 
-    if (!recipient.chats.includes(chat._id as any)) {
-      recipient.chats.push(chat._id as any);
-      await recipient.save();
-    }
-
-    const socketId = io.IDs.get(userId);
     if (!socketId) {
       return callback({
-        author: author,
+        author: author as any,
         content: message,
       });
     }
@@ -93,7 +81,7 @@ export default async function handler(
       content: message,
     });
     callback({
-      author: author,
+      author: author as any,
       content: message,
     });
   } catch {
