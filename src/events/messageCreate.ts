@@ -47,7 +47,7 @@ export default async function handler(
     if (!chat) return console.log("Chat doesn't exist");
 
     const author = chat.participants.filter((p) => p._id == decoded._id)[0];
-    const recipient = chat.participants.filter((p) => p._id !== decoded._id)[0];
+    const recipient = chat.participants.filter((p) => p._id != decoded._id)[0];
 
     if (!recipient.chats.includes(chat._id as any)) {
       recipient.chats.push(chat._id as any);

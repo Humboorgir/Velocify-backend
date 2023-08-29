@@ -6,11 +6,11 @@ interface IUser {
   username: string;
   email: string;
   password: string;
-  chats: [IChat];
+  chats: IChat[];
 }
 interface IChat {
   _id: string;
-  participants: [IUser];
+  participants: IUser[];
   messages: [
     {
       author: ObjectId;
