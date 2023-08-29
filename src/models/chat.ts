@@ -1,7 +1,16 @@
 import mongoose, { ObjectId } from "mongoose";
 
+interface IUser {
+  save(): unknown;
+  _id: string;
+  username: string;
+  email: string;
+  password: string;
+  chats: [IChat];
+}
 interface IChat {
-  participants: [ObjectId];
+  _id: string;
+  participants: [IUser];
   messages: [
     {
       author: ObjectId;
