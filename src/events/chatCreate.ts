@@ -34,8 +34,8 @@ export default async function handler(io: IO, socket: Socket, data: IData, callb
     if (typeof decoded === "string") return console.log("Unauthorized");
     const user = await userModel.findOne({ _id: decoded._id });
     const otherUser = await userModel.findOne({ _id: userId });
-    if (!otherUser) return console.log("request senders account wasnt found");
-    if (!user) return console.log("other users account wasnt found");
+    if (!user) return console.log("request senders account wasnt found");
+    if (!otherUser) return console.log("other users account wasnt found");
     const chat = new chatModel({
       participants: [user._id, otherUser._id],
       messages: [],

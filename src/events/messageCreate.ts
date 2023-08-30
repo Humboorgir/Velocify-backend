@@ -52,6 +52,22 @@ export default async function handler(
     if (!recipient.chats.includes(chat._id as any)) {
       recipient.chats.push(chat._id as any);
       await recipient.save();
+      const socketId = io.IDs.get(String(recipient._id));
+      if (socketId) {
+        socket.to(socketId).emit("chatCreate", {
+          _id: chat._id,
+          participants: [
+            {
+              _id: author._id,
+              username: author.username,
+            },
+            {
+              _id: recipient._id,
+              username: recipient.username,
+            },
+          ],
+        });
+      }
     }
 
     // define the message object
@@ -69,17 +85,13 @@ export default async function handler(
 
     const socketId = io.IDs.get(String(recipient._id));
 
-    if (!socketId) {
-      return callback({
-        author: author as any,
+    if (socketId) {
+      socket.to(socketId).emit("messageCreate", {
+        author: author,
         content: message,
       });
     }
 
-    socket.to(socketId).emit("messageCreate", {
-      author: author,
-      content: message,
-    });
     callback({
       author: author as any,
       content: message,
