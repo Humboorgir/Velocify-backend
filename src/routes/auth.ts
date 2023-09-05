@@ -5,7 +5,7 @@ import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "rsecret";
 const router = express.Router();
-// TODO: implment this using a database
+// TODO: implement this using a database
 let refreshTokens: string[] = [];
 // handling post requests sent to /auth/register
 router.post("/register", async (req: Request, res: Response) => {
