@@ -3,8 +3,6 @@ import chatModel from "../models/chat";
 
 export default async function handler(io: Server, socket: Socket, data: any, callback: (chats: any) => void) {
   const chatId = data;
-  console.log(chatId);
-
   let chat = await chatModel
     .findOne({
       _id: chatId,

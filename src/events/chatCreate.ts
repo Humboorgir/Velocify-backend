@@ -23,42 +23,32 @@ interface chat {
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 
 export default async function handler(io: IO, socket: Socket, data: IData, callback: (chat: chat) => void) {
-  // note: userId contains the ID of the user we're sending a message to
-  const { token, userId } = data;
-  // authorize the user
-  if (!token) return console.log("token wasnt provided");
-  try {
-    // decode the token
-    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
-    // if the token is expired or invalid:
-    if (typeof decoded === "string") return console.log("Unauthorized");
-    const user = await userModel.findOne({ _id: decoded._id });
-    const otherUser = await userModel.findOne({ _id: userId });
-    if (!user) return console.log("request senders account wasnt found");
-    if (!otherUser) return console.log("other users account wasnt found");
-    const chat = new chatModel({
-      participants: [user._id, otherUser._id],
-      messages: [],
-    });
-    const savedChat = await chat.save();
-    (user.chats as any[]).push(chat._id);
-    user.save();
+  // note: userId contains the ID of the user we're adding
+  const { userId } = data;
+  const { decoded } = socket as any;
+  const user = await userModel.findOne({ _id: decoded._id });
+  const otherUser = await userModel.findOne({ _id: userId });
+  if (!user) return console.log("request senders account wasnt found");
+  if (!otherUser) return console.log("other users account wasnt found");
+  const chat = new chatModel({
+    participants: [user._id, otherUser._id],
+    messages: [],
+  });
+  const savedChat = await chat.save();
+  (user.chats as any[]).push(chat._id);
+  user.save();
 
-    callback({
-      _id: savedChat._id,
-      participants: [
-        {
-          _id: user._id,
-          username: user.username,
-        },
-        {
-          _id: otherUser._id,
-          username: otherUser.username,
-        },
-      ],
-    });
-  } catch {
-    // if the token is invalid or expired
-    return;
-  }
+  callback({
+    _id: savedChat._id,
+    participants: [
+      {
+        _id: user._id,
+        username: user.username,
+      },
+      {
+        _id: otherUser._id,
+        username: otherUser.username,
+      },
+    ],
+  });
 }

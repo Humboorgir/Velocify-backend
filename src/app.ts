@@ -29,6 +29,7 @@ const database = mongoose.connection;
 // cors
 const corsOptions: CorsOptions = {
   origin: FRONTEND_SERVER,
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
@@ -58,32 +59,37 @@ interface IO extends Server {
 }
 
 (io as IO).IDs = IDs;
-io.on("connection", async (socket) => {
-  const token = socket.handshake.query.token as string;
-  if (!token) return;
+
+io.use(function (socket: any, next) {
+  const { token } = socket.handshake.auth;
+  if (!token) return next(new Error("Unauthorized"));
   // decode the provided token to get the users id
   try {
     const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
-    if (typeof decoded === "string") return;
-    IDs.set(decoded._id, socket.id);
+    if (typeof decoded === "string") return next(new Error("Forbidden"));
+
+    (socket as any).decoded = decoded;
   } catch {
-    return;
+    return next(new Error("Forbidden"));
   }
+  next();
+});
+
+io.on("connection", async (socket) => {
+  const { decoded } = socket as any;
+  IDs.set(decoded._id, socket.id);
+
   // get the path to ./events in my computer
   const eventsPath = path.join(__dirname, "events");
   // get the name of each file stored in ./events (along with their file extensions)
-  const eventFiles = fs
-    .readdirSync(eventsPath)
-    .filter((file) => !file.endsWith(".map"));
+  const eventFiles = fs.readdirSync(eventsPath).filter((file) => !file.endsWith(".map"));
 
   for (const event of eventFiles) {
     // remove file extensions
     const Event: string = event.split(".")[0];
     // import handler
     const handler = require(`./events/${Event}`);
-    socket.on(Event, (data, callback) =>
-      handler.default(io, socket, data, callback)
-    );
+    socket.on(Event, (data, callback) => handler.default(io, socket, data, callback));
   }
 });
 // return 404 if none of the defined routes match the url
@@ -92,7 +98,5 @@ app.use((req: Request, res: Response) => {
 });
 
 server.listen(PORT, IP_ADDRESS, () => {
-  console.log(
-    `${chalk.cyan("[Server]")} Server running on ${IP_ADDRESS}:${PORT}`
-  );
+  console.log(`${chalk.cyan("[Server]")} Server running on ${IP_ADDRESS}:${PORT}`);
 });
