@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 import userModel from "../models/user";
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "rsecret";
 const router = express.Router();
 // TODO: implement this using a database
 let refreshTokens: string[] = [];
@@ -29,31 +28,6 @@ router.post("/register", async (req: Request, res: Response) => {
     });
 });
 
-// used for generating a new access token
-router.post("/token", (req: Request, res: Response) => {
-  console.log("received req");
-  let { refreshToken: token } = req.cookies;
-
-  if (!token) {
-    console.log("no ref token");
-    return res.sendStatus(403);
-  }
-  if (!refreshTokens.includes(token)) {
-    console.log("ref token not stored");
-    return res.sendStatus(401);
-  }
-
-  try {
-    // prettier-ignore
-    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET as Secret) as JwtPayload;
-    const { email, password } = decoded;
-    let accessToken = jwt.sign({ email, password }, ACCESS_TOKEN_SECRET);
-    console.log(accessToken);
-    return res.status(200).json({ accessToken });
-  } catch (err) {
-    return res.sendStatus(401);
-  }
-});
 router.delete("/logout", (req: Request, res: Response) => {
   let { token } = req.body;
   refreshTokens = refreshTokens.filter((rtoken) => rtoken !== token);
@@ -71,18 +45,10 @@ router.post("/login", async (req: Request, res: Response) => {
 
   const User = { _id: foundUser._id };
   // generating the access token
-  let accessToken = jwt.sign(User, ACCESS_TOKEN_SECRET, {
-    expiresIn: "1h",
-  });
-  // generating the refresh token
-  let refreshToken = jwt.sign(User, REFRESH_TOKEN_SECRET, {
-    expiresIn: "90d",
-  });
-  // storing the refresh token
-  refreshTokens.push(refreshToken);
+  let accessToken = jwt.sign(User, ACCESS_TOKEN_SECRET);
 
   const user = { username: foundUser.username, _id: foundUser._id };
-  return res.status(200).json({ accessToken, refreshToken, user });
+  return res.status(200).json({ accessToken, user });
 });
 
 export default router;

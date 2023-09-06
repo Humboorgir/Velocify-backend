@@ -9,7 +9,6 @@ import chalk from "chalk";
 import express, { Request, Response, Express } from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -42,8 +41,6 @@ mongoConnect();
 // use body parser middleware to parse json data
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use(cookieParser());
 
 // loading routes
 loadRouteFiles(app);
