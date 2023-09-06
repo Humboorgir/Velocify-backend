@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.get("/:userId", authenticate, async (req: Request, res: Response) => {
   const { userId } = req.params;
-
   let user = (
     await userModel
       .find({
@@ -22,8 +21,11 @@ router.get("/:userId", authenticate, async (req: Request, res: Response) => {
         },
       })
   )[0];
+  if (!user) {
+    res.sendStatus(404);
+  }
 
-  if (String(user._id) !== (req as any).user._id) return res.sendStatus(403);
+  if (String(userId) !== (req as any).user._id) return res.sendStatus(403);
 
   return res.status(200).json(user.chats);
 });

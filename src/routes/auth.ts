@@ -31,18 +31,27 @@ router.post("/register", async (req: Request, res: Response) => {
 
 // used for generating a new access token
 router.post("/token", (req: Request, res: Response) => {
-  let { token } = req.body;
-  if (!token) return res.sendStatus(401);
-  if (!refreshTokens.includes(token)) return res.sendStatus(403);
+  console.log("received req");
+  let { refreshToken: token } = req.cookies;
+
+  if (!token) {
+    console.log("no ref token");
+    return res.sendStatus(403);
+  }
+  if (!refreshTokens.includes(token)) {
+    console.log("ref token not stored");
+    return res.sendStatus(401);
+  }
 
   try {
     // prettier-ignore
     const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET as Secret) as JwtPayload;
     const { email, password } = decoded;
     let accessToken = jwt.sign({ email, password }, ACCESS_TOKEN_SECRET);
+    console.log(accessToken);
     return res.status(200).json({ accessToken });
   } catch (err) {
-    return res.sendStatus(403);
+    return res.sendStatus(401);
   }
 });
 router.delete("/logout", (req: Request, res: Response) => {
@@ -71,7 +80,7 @@ router.post("/login", async (req: Request, res: Response) => {
   });
   // storing the refresh token
   refreshTokens.push(refreshToken);
-  
+
   const user = { username: foundUser.username, _id: foundUser._id };
   return res.status(200).json({ accessToken, refreshToken, user });
 });
