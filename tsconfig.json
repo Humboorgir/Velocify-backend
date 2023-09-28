@@ -4,7 +4,6 @@
     "moduleResolution": "NodeNext",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noImplicitReturns": true,
     "esModuleInterop": true,
     "target": "ES2020",
     "sourceMap": true,

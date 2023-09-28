@@ -1,15 +1,27 @@
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import userModel from "../models/user";
-import jwt, { Secret, JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
+
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "secret";
 const router = express.Router();
-// TODO: implement this using a database
-let refreshTokens: string[] = [];
+
+const userSchema = z.object({
+  username: z.string().min(3).max(16),
+  email: z.string().min(3).max(320),
+  password: z.string().min(8).max(24),
+});
+
+type User = z.infer<typeof userSchema>;
+
 // handling post requests sent to /auth/register
 router.post("/register", async (req: Request, res: Response) => {
-  let { username, email, password } = req.body;
-  if (!username || !email || !password) return;
+  const props = { ...req.body };
+
+  const user = userSchema.safeParse(props);
+  if (!user.success) return res.status(400).send(user.error.issues[0].message);
+  const { username, password, email } = user as unknown as User;
   const hashedPassword = await bcrypt.hash(password, 10);
   let data = new userModel({
     username,
@@ -28,14 +40,9 @@ router.post("/register", async (req: Request, res: Response) => {
     });
 });
 
-router.delete("/logout", (req: Request, res: Response) => {
-  let { token } = req.body;
-  refreshTokens = refreshTokens.filter((rtoken) => rtoken !== token);
-  res.sendStatus(204);
-});
-
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  if (!email || !password) return res.sendStatus(400);
   // check if user exists
   let foundUser = await userModel.findOne({ email });
   if (!foundUser) return res.sendStatus(404);
