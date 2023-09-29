@@ -12,14 +12,23 @@ export default async function handler(io: Server, socket: Socket, data: any, cal
         _id: data,
       })
       .select("chats")
-      .populate({
-        path: "chats",
-        select: "participants",
-        populate: {
-          path: "participants",
-          select: "username",
+      .populate([
+        {
+          path: "chats",
+          select: {
+            participants: 1,
+            messages: { $slice: -1 },
+          },
+          populate: {
+            path: "participants",
+            select: "username",
+          },
         },
-      })
+        {
+          path: "chats.messages",
+          select: "content",
+        },
+      ])
   )[0];
 
   if (!user) return console.log("User wasnt found");
