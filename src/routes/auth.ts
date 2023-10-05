@@ -21,23 +21,28 @@ router.post("/register", async (req: Request, res: Response) => {
 
   const user = userSchema.safeParse(props);
   if (!user.success) return res.status(400).send(user.error.issues[0].message);
-  const { username, password, email } = user as unknown as User;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  let data = new userModel({
-    username,
-    email,
-    password: hashedPassword,
-  });
-  // saving the requested data into the databse
-  data
-    .save()
-    .then(() => {
-      return res.sendStatus(200);
-    })
-    .catch((err) => {
-      console.log(err);
-      return res.sendStatus(500);
+  const { username, password, email } = user.data as User;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let data = new userModel({
+      username,
+      email,
+      password: hashedPassword,
     });
+    // saving the requested data into the databse
+    data
+      .save()
+      .then(() => {
+        return res.sendStatus(200);
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.sendStatus(500);
+      });
+  } catch (err) {
+    console.log(err);
+    return res.sendStatus(500);
+  }
 });
 
 router.post("/login", async (req: Request, res: Response) => {
